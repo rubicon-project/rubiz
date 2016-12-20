@@ -21,7 +21,7 @@ pomExtra := (
       {
       Seq(
         ("coltfred", "Colt Frederickson"),
-		("skeet70", "Murph Murphy")
+        ("skeet70", "Murph Murphy")
       ).map {
         case (id, name) =>
           <developer>
