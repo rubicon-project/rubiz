@@ -1,0 +1,21 @@
+language: scala
+scala:
+- 2.10.6
+- 2.11.8
+matrix:
+  include:
+  - scala: 2.12.0
+    jdk: oraclejdk8
+cache:
+  directories:
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/boot/"
+
+install:
+  - pip install --user codecov
+
+script:
+- sbt ++$TRAVIS_SCALA_VERSION scalastyle compile
+- sbt ++$TRAVIS_SCALA_VERSION coverage test coverageReport
+after_success:
+- codecov
