@@ -9,9 +9,9 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
       val expected = "expected"
       var calledTimes = 0
       val task = Task.delay(expected).withSideEffectTiming(_ => calledTimes = calledTimes + 1)
-      task.run shouldBe expected
+      task.attemptRun.value shouldBe expected
       calledTimes shouldBe 1
-      task.run shouldBe expected
+      task.attemptRun.value shouldBe expected
       calledTimes shouldBe 2
     }
     "use the timer when an exception is thrown" in {
@@ -23,10 +23,19 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
       calledTimes shouldBe 2
     }
   }
+
+  "Task.withTiming" should {
+    "use the timer in the happy path" in {
+      val expected = "expected"
+      val task = Task.delay(expected).withTiming
+      val (time, _) = task.attemptRun.value
+      (time.toNanos > 0) shouldBe true
+    }
+  }
   "Task.failMap" should {
     "ignore a successful task" in {
       val expected = 1
-      Task.now(expected).failMap(_ => fail("shouldn't get here")).run shouldBe expected
+      Task.now(expected).failMap(_ => fail("shouldn't get here")).attemptRun.value shouldBe expected
     }
     "reflect the changed exception" in {
       val original = new Exception("original")
@@ -41,7 +50,7 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
       Task.now(expected).peek { a =>
         called = true
         a shouldBe expected
-      }.run shouldBe expected
+      }.attemptRun.value shouldBe expected
       called shouldBe true
     }
     "be ignored for a failure" in {
@@ -59,7 +68,7 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
       val expected = 1
       Task.now(expected).peekFail { a =>
         called = true
-      }.run shouldBe expected
+      }.attemptRun.value shouldBe expected
       called shouldBe false
     }
     "be called for a failure" in {
@@ -70,6 +79,21 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
         called = true
       }.attemptRun.leftValue shouldBe expected
       called shouldBe true
+    }
+  }
+
+  "Task.attemptFold" should {
+    "convert error to Int" in {
+      //Make the 2nd function throw because it shouldn't be evaluated.
+      val failedTask: Task[String] = Task.fail(new Exception(""))
+      val resultTask = failedTask.attemptFold(_ => 1)(x => throw new Exception(x))
+      resultTask.attemptRun.value shouldBe 1
+    }
+    "convert success to Int" in {
+      //Make the 1st function throw because it shouldn't be evaluated.
+      val successfulTask: Task[String] = Task.delay("foo")
+      val resultTask = successfulTask.attemptFold(ex => throw ex)(_ => 1)
+      resultTask.attemptRun.value shouldBe 1
     }
   }
 }
