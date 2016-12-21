@@ -1,11 +1,9 @@
 name := "rubiz"
 organization := "com.rubiconproject"
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-
-addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3")
-
 scalaVersion := "2.11.8"
+
+crossScalaVersions := Seq("2.11.8", "2.12.1")
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.0" % "test",
@@ -15,8 +13,6 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "scalaz-scalatest" % "0.5.1" % "test")
 
 coverageHighlighting := scalaBinaryVersion.value == "2.11"
-
-licenses := Seq("BSD 2-Clause" -> url("https://opensource.org/licenses/BSD-2-Clause"))
 
 // Adapted from Rob Norris' post at https://tpolecat.github.io/2014/04/11/scalac-flags.html
 scalacOptions ++= Seq(
