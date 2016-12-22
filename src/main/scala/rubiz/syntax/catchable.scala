@@ -9,7 +9,7 @@ trait CatchableSyntax {
 
 final class CatchableOps[M[_], A](val ma: M[A])(implicit catchableM: Catchable[M]) {
   /**
-   * Fail M with the error if `f` returns false. Return ma unchanged otherwise.
+   * Fail M with the error if `f` returns false, otherwise return ma unchanged.
    */
   def ensure(error: => Throwable)(f: A => Boolean)(implicit monadM: Monad[M]): M[A] = ma.flatMap { a =>
     if (f(a)) ma else catchableM.fail(error)

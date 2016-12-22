@@ -37,7 +37,7 @@ final class TaskOps[A](val t: Task[A]) extends AnyVal {
   }
 
   /**
-   * If `t` fails this allows you to report a different exception. If `t` is successful this is a no-op.
+   * If `t` fails this allows you to report a different exception, no-op otherwise.
    */
   def failMap(f: Throwable => Throwable): Task[A] = {
     t.handleWith {
@@ -53,7 +53,7 @@ final class TaskOps[A](val t: Task[A]) extends AnyVal {
   }
 
   /**
-   * An opportunity to side effect, e.g. log, when `t` evaluates to a successful value.
+   * An opportunity to side effect (log), when `t` evaluates to a successful value.
    */
   def peek(f: A => Unit): Task[A] = {
     t.map { a =>
@@ -63,7 +63,7 @@ final class TaskOps[A](val t: Task[A]) extends AnyVal {
   }
 
   /**
-   * An opportunity to side effect, e.g. log, when `t` evaluates to a failure.
+   * An opportunity to side effect (log), when `t` evaluates to a failure.
    */
   def peekFail(f: Throwable => Unit): Task[A] = {
     t.handleWith {
