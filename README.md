@@ -24,7 +24,14 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 
 ### Catchable
 
+```scala
+import scalaz.Catchable
+import rubiz.syntax.catchable._
+```
+
 #### ensure
+
+
 
 ### Either
 
@@ -54,7 +61,7 @@ information.
         result
   }
   .run)
-// 2 country names were returned by the DB in 2 ms.
+// 2 country names were returned by the DB in 1 ms.
 // res0: List[String] = List(Australia, Japan)
 ```
 
@@ -65,9 +72,9 @@ regardless of the success of the task.
 
 ```scala
 (Task.now(List("hello", "world"))
-  .withSideEffectTiming(timing => println(s"${timing.toMillis} ms to the metrics service!"))  // Task[List[String]]
+  .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run to the metrics service!"))  // Task[List[String]]
   .run)
-// 21 ms to the metrics service!
+// 20 ms run to the metrics service!
 // res1: List[String] = List(hello, world)
 ```
 
