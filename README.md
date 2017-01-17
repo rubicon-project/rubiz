@@ -4,6 +4,17 @@ Rubiz
 [![codecov.io](https://codecov.io/github/rubicon-project/rubiz/coverage.svg?branch=master)](https://codecov.io/github/rubicon-project/rubiz?branch=master)
 [![scaladoc](https://javadoc-badge.appspot.com/com.rubiconproject/rubiz_2.11.svg?label=scaladoc)](https://javadoc-badge.appspot.com/com.rubiconproject/rubiz_2.11)
 
+## Table of Contents
+* [Purpose](#purpose)
+* [Installation](#installation)
+* [Additions](#additions)
+  * [Catchable](#catchable)
+  * [Task](#task)
+  * [Either](#either)
+  * [Try](#try)
+* [Tests](#tests)
+* [Continuous Integration](#continuous-integration)
+* [Release](#release)
 
 ## Purpose
 
@@ -63,7 +74,7 @@ information.
         result
   }
   .run)
-// 2 country names were returned by the DB in 1 ms.
+// 2 country names were returned by the DB in 2 ms.
 // res1: List[String] = List(Australia, Japan)
 ```
 
@@ -76,7 +87,7 @@ regardless of the success of the task.
 (Task.now(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run to the metrics service!"))  // Task[List[String]]
   .run)
-// 5 ms run to the metrics service!
+// 13 ms run to the metrics service!
 // res2: List[String] = List(hello, world)
 ```
 
@@ -220,4 +231,5 @@ Run `sbt test` to build the project and exercise the unit test suite.
 ## Release
 
 Rubiz is versioned with [semver](http://semver.org/) and released to [sonatype](https://oss.sonatype.org/).
-Open an issue on Github if you feel there should be a release published that hasn't been.
+Open an issue on Github if you feel there should be a release published that hasn't been. You can run `sbt tut`
+to regenerate documentation locally if you modify the docs in the `/main/tut` directory.

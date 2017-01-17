@@ -212,4 +212,5 @@ Run `sbt test` to build the project and exercise the unit test suite.
 ## Release
 
 Rubiz is versioned with [semver](http://semver.org/) and released to [sonatype](https://oss.sonatype.org/).
-Open an issue on Github if you feel there should be a release published that hasn't been.
+Open an issue on Github if you feel there should be a release published that hasn't been. You can run `sbt tut`
+to regenerate documentation locally if you modify the docs in the `/main/tut` directory.
