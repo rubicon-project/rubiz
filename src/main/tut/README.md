@@ -4,6 +4,17 @@ Rubiz
 [![codecov.io](https://codecov.io/github/rubicon-project/rubiz/coverage.svg?branch=master)](https://codecov.io/github/rubicon-project/rubiz?branch=master)
 [![scaladoc](https://javadoc-badge.appspot.com/com.rubiconproject/rubiz_2.11.svg?label=scaladoc)](https://javadoc-badge.appspot.com/com.rubiconproject/rubiz_2.11)
 
+## Table of Contents
+* [Purpose](#purpose)
+* [Installation](#installation)
+* [Additions](#additions)
+  * [Catchable](#catchable)
+  * [Task](#task)
+  * [Either](#either)
+  * [Try](#try)
+* [Tests](#tests)
+* [Continuous Integration](#continuous-integration)
+* [Release](#release)
 
 ## Purpose
 
