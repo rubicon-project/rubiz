@@ -49,4 +49,8 @@ scalacOptions in Test += "-Yrangepos"
 
 scalacOptions in (Compile, console) ~= (_ filterNot (Set("-Xfatal-warnings", "-Ywarn-unused-import").contains))
 
-scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value
+scalacOptions in (Test, console) := (scalacOptions in  (Compile, console)).value
+
+tutSettings
+tutTargetDirectory := baseDirectory.value
+tutScalacOptions ~= (_.filterNot(Set("-Ywarn-unused-import", "-Ywarn-dead-code")))

@@ -24,3 +24,6 @@ out/
 #Sublime text
 *.sublime-project
 *.sublime-workspace
+
+#Mac
+.DS_Store
