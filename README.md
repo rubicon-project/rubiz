@@ -26,18 +26,20 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 
 ```scala
 import scalaz.Catchable
+import scalaz.syntax.catchable._
+import scalaz.effect.IO
 import rubiz.syntax.catchable._
 ```
 
 #### ensure
+Check the result inside `Catchable` to see if it matches your predicate. If it doesn't, the left becomes your provided value.
 
-
-
-### Either
-
-#### toTask
-
-#### toM
+```scala
+(IO("username")
+  .ensure(new Exception("Can't make a user without a name."))(_.nonEmpty)
+  .unsafePerformIO)
+// res0: String = username
+```
 
 ### Task
 
@@ -62,7 +64,7 @@ information.
   }
   .run)
 // 2 country names were returned by the DB in 1 ms.
-// res0: List[String] = List(Australia, Japan)
+// res1: List[String] = List(Australia, Japan)
 ```
 
 #### withSideEffectTiming
@@ -74,8 +76,8 @@ regardless of the success of the task.
 (Task.now(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run to the metrics service!"))  // Task[List[String]]
   .run)
-// 20 ms run to the metrics service!
-// res1: List[String] = List(hello, world)
+// 5 ms run to the metrics service!
+// res2: List[String] = List(hello, world)
 ```
 
 #### failMap
@@ -86,7 +88,7 @@ failure.
 (Task.fail(new Exception("Esoteric nonsense."))
   .failMap(_ => new Exception("Contextual description of what happened."))
   .attemptRun)
-// res2: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
+// res3: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
 ```
 
 #### attemptFold
@@ -96,14 +98,14 @@ Allows you to handle errors and map the successes to a new value.
 (Task.now("Success")
   .attemptFold(_ => "Failure")(_ ++ "es")
   .run)
-// res3: String = Successes
+// res4: String = Successes
 ```
 
 ```scala
 (Task.delay[String](throw new Exception("Explosion"))
   .attemptFold(_ => "The explosion was contained.")(_ ++ "es")
   .run)
-// res4: String = The explosion was contained.
+// res5: String = The explosion was contained.
 ```
 
 #### peek
@@ -118,7 +120,7 @@ useful for logging.
   })
   .run)
 // Element was found.
-// res5: Boolean = true
+// res6: Boolean = true
 ```
 
 #### peekFail
@@ -130,14 +132,82 @@ logging.
   .peekFail(_ => println("What is an element, really?"))
   .attemptRun)
 // What is an element, really?
-// res6: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
+// res7: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
+```
+
+### Either
+
+```scala
+import scalaz.\/
+import scalaz.syntax.either._
+import rubiz.syntax.either._
+```
+
+#### toTask
+Turns your `\/[Throwable, A]` into a `Task[A]`.
+Useful when you're trying to compose `Tasks` and you want to mix in an `Either`.
+
+```scala
+(List("USA", "Canada")
+  .right[Throwable]     // \/[Throwable, List[String]]
+  .toTask               // Task[List[String]]
+  .run)
+// res8: List[String] = List(USA, Canada)
+```
+
+#### toM
+Allows you to convert an `Either` to any `Monad` that has an `Applicative` and `Catchable` instance.
+This operates like `toTask` but is more generic.
+
+```scala
+// import scalaz.concurrent.Task
+("Some Name"
+  .right[Throwable] // \/[Throwable, String]
+  .toM[Task]        // Task[String]
+  .run)
+// res10: String = Some Name
+
+// import scalaz.effect.IO
+(new Exception("Users do bad things")
+  .left[String] // \/[Throwable, String]
+  .toM[IO]      // IO[String]
+  .attempt      // IO[\/[Throwable, String]]
+  .unsafePerformIO)
+// res12: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
 ```
 
 ### Try
+`try` is a reserved word, so we've resorted to backticks. If you've got an alternative suggestion,
+we'd love to hear it.
+
+```scala
+import scala.util.Try
+import rubiz.syntax.`try`._
+```
 
 #### toDisjunction
+If you're using Scalaz you'd probably rather be working with an `Either`/`\/`/`Disjunction` than
+a `Try`.
+
+```scala
+val badTry = Try(throw new Exception("No really, users."))
+// badTry: scala.util.Try[Nothing] = Failure(java.lang.Exception: No really, users.)
+
+badTry.toDisjunction
+// res13: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
+```
 
 #### toTask
+If you're in streams-land and want to go directly from a `Try` to a `Task`, this sugars you on over
+there. Useful when using non-Scalaz libs with Scalaz streams.
+
+```scala
+val okTry = Try("My examples get worse as time goes on")
+// okTry: scala.util.Try[String] = Success(My examples get worse as time goes on)
+
+okTry.toTask.run
+// res14: String = My examples get worse as time goes on
+```
 
 ## Tests
 

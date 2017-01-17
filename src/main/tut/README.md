@@ -26,18 +26,19 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 
 ```tut:silent
 import scalaz.Catchable
+import scalaz.syntax.catchable._
+import scalaz.effect.IO
 import rubiz.syntax.catchable._
 ```
 
 #### ensure
+Check the result inside `Catchable` to see if it matches your predicate. If it doesn't, the left becomes your provided value.
 
-
-
-### Either
-
-#### toTask
-
-#### toM
+```tut:book
+(IO("username")
+  .ensure(new Exception("Can't make a user without a name."))(_.nonEmpty)
+  .unsafePerformIO)
+```
 
 ### Task
 
@@ -122,11 +123,72 @@ logging.
   .attemptRun)
 ```
 
-### Try
+### Either
 
-#### toDisjunction
+```tut:silent
+import scalaz.\/
+import scalaz.syntax.either._
+import rubiz.syntax.either._
+```
 
 #### toTask
+Turns your `\/[Throwable, A]` into a `Task[A]`.
+Useful when you're trying to compose `Tasks` and you want to mix in an `Either`.
+
+```tut:book
+(List("USA", "Canada")
+  .right[Throwable]     // \/[Throwable, List[String]]
+  .toTask               // Task[List[String]]
+  .run)
+```
+
+#### toM
+Allows you to convert an `Either` to any `Monad` that has an `Applicative` and `Catchable` instance.
+This operates like `toTask` but is more generic.
+
+```tut:book
+// import scalaz.concurrent.Task
+("Some Name"
+  .right[Throwable] // \/[Throwable, String]
+  .toM[Task]        // Task[String]
+  .run)
+  
+// import scalaz.effect.IO
+(new Exception("Users do bad things")
+  .left[String] // \/[Throwable, String]
+  .toM[IO]      // IO[String]
+  .attempt      // IO[\/[Throwable, String]]
+  .unsafePerformIO)
+```
+
+### Try
+`try` is a reserved word, so we've resorted to backticks. If you've got an alternative suggestion,
+we'd love to hear it.
+
+```tut:silent
+import scala.util.Try
+import rubiz.syntax.`try`._
+```
+
+#### toDisjunction
+If you're using Scalaz you'd probably rather be working with an `Either`/`\/`/`Disjunction` than
+a `Try`.
+
+```tut:book
+val badTry = Try(throw new Exception("No really, users."))
+
+badTry.toDisjunction
+```
+
+#### toTask
+If you're in streams-land and want to go directly from a `Try` to a `Task`, this sugars you on over
+there. Useful when using non-Scalaz libs with Scalaz streams.
+
+```tut:book
+val okTry = Try("My examples get worse as time goes on")
+
+okTry.toTask.run
+```
 
 ## Tests
 
