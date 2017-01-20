@@ -65,11 +65,11 @@ will be available. This is most useful for local logging of timing
 information.
 
 ```tut:book
-(Task.now(List("Australia", "Japan"))
+(Task.delay(List("Australia", "Japan"))
   .withTiming           // Task[(FiniteDuration, List[String])]
   .map {
       case (timing, result) =>
-        println(s"${result.length} country names were returned by the DB in ${timing.toMillis} ms.")
+        println(s"${result.length} country names were returned in ${timing.toMillis} ms.")
         result
   }
   .run)
@@ -81,8 +81,8 @@ generally a metrics backend or logging service. This logs the duration
 regardless of the success of the task.
 
 ```tut:book
-(Task.now(List("hello", "world"))
-  .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run to the metrics service!"))  // Task[List[String]]
+(Task.delay(List("hello", "world"))
+  .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
 ```
 

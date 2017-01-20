@@ -66,15 +66,15 @@ will be available. This is most useful for local logging of timing
 information.
 
 ```scala
-(Task.now(List("Australia", "Japan"))
+(Task.delay(List("Australia", "Japan"))
   .withTiming           // Task[(FiniteDuration, List[String])]
   .map {
       case (timing, result) =>
-        println(s"${result.length} country names were returned by the DB in ${timing.toMillis} ms.")
+        println(s"${result.length} country names were returned in ${timing.toMillis} ms.")
         result
   }
   .run)
-// 2 country names were returned by the DB in 2 ms.
+// 2 country names were returned in 1 ms.
 // res1: List[String] = List(Australia, Japan)
 ```
 
@@ -84,10 +84,10 @@ generally a metrics backend or logging service. This logs the duration
 regardless of the success of the task.
 
 ```scala
-(Task.now(List("hello", "world"))
-  .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run to the metrics service!"))  // Task[List[String]]
+(Task.delay(List("hello", "world"))
+  .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 13 ms run to the metrics service!
+// 8 ms run, to the metrics service!
 // res2: List[String] = List(hello, world)
 ```
 
