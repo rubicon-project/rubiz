@@ -35,7 +35,7 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 
 ### Catchable
 
-```scala
+```tut:silent
 import scalaz.Catchable
 import scalaz.syntax.catchable._
 import scalaz.effect.IO
@@ -45,16 +45,15 @@ import rubiz.syntax.catchable._
 #### ensure
 Check the result inside `Catchable` to see if it matches your predicate. If it doesn't, the left becomes your provided value.
 
-```scala
+```tut:book
 (IO("username")
   .ensure(new Exception("Can't make a user without a name."))(_.nonEmpty)
   .unsafePerformIO)
-// res0: String = username
 ```
 
 ### Task
 
-```scala
+```tut:silent
 import scalaz.concurrent.Task
 import rubiz.syntax.task._
 ```
@@ -65,7 +64,7 @@ failed, there isn't a result to wrap up with, and no timing information
 will be available. This is most useful for local logging of timing
 information.
 
-```scala
+```tut:book
 (Task.delay(List("Australia", "Japan"))
   .withTiming           // Task[(FiniteDuration, List[String])]
   .map {
@@ -74,8 +73,6 @@ information.
         result
   }
   .run)
-// 2 country names were returned in 1 ms.
-// res1: List[String] = List(Australia, Japan)
 ```
 
 #### withSideEffectTiming
@@ -83,72 +80,63 @@ Useful for side effecting the duration of a task to external services,
 generally a metrics backend or logging service. This logs the duration
 regardless of the success of the task.
 
-```scala
+```tut:book
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 8 ms run, to the metrics service!
-// res2: List[String] = List(hello, world)
 ```
 
 #### failMap
 `leftMap` for a `Task`. Useful for reporting a different exception than the one actually created by the
 failure.
 
-```scala
+```tut:book
 (Task.fail(new Exception("Esoteric nonsense."))
   .failMap(_ => new Exception("Contextual description of what happened."))
   .attemptRun)
-// res3: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
 ```
 
 #### attemptFold
 Allows you to handle errors and map the successes to a new value.
 
-```scala
+```tut:book
 (Task.now("Success")
   .attemptFold(_ => "Failure")(_ ++ "es")
   .run)
-// res4: String = Successes
 ```
 
-```scala
+```tut:book
 (Task.delay[String](throw new Exception("Explosion"))
   .attemptFold(_ => "The explosion was contained.")(_ ++ "es")
   .run)
-// res5: String = The explosion was contained.
 ```
 
 #### peek
 Run your function as a side effect if the task is successful and pass the original return value through. Particularly
 useful for logging.
 
-```scala
+```tut:book
 (Task.now(true)
   .peek(b => b match {
     case true => println("Element was found.")
     case false => println("Element wasn't found.")
   })
   .run)
-// Element was found.
-// res6: Boolean = true
 ```
 
 #### peekFail
 Run your function as a side effect if the task fails and pass the original Throwable through. Particularly useful for
 logging.
 
-```scala
+```tut:book
 (Task.delay[Boolean](throw new Exception("I can't search this list!"))
   .peekFail(_ => println("What is an element, really?"))
   .attemptRun)
-// What is an element, really?
-// res7: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
 ```
 
 ### Either
 
-```scala
+```tut:silent
 import scalaz.\/
 import scalaz.syntax.either._
 import rubiz.syntax.either._
@@ -158,40 +146,37 @@ import rubiz.syntax.either._
 Turns your `\/[Throwable, A]` into a `Task[A]`.
 Useful when you're trying to compose `Tasks` and you want to mix in an `Either`.
 
-```scala
+```tut:book
 (List("USA", "Canada")
   .right[Throwable]     // \/[Throwable, List[String]]
   .toTask               // Task[List[String]]
   .run)
-// res8: List[String] = List(USA, Canada)
 ```
 
 #### toM
 Allows you to convert an `Either` to any `Monad` that has an `Applicative` and `Catchable` instance.
 This operates like `toTask` but is more generic.
 
-```scala
+```tut:book
 // import scalaz.concurrent.Task
 ("Some Name"
   .right[Throwable] // \/[Throwable, String]
   .toM[Task]        // Task[String]
   .run)
-// res10: String = Some Name
-
+  
 // import scalaz.effect.IO
 (new Exception("Users do bad things")
   .left[String] // \/[Throwable, String]
   .toM[IO]      // IO[String]
   .attempt      // IO[\/[Throwable, String]]
   .unsafePerformIO)
-// res12: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
 ```
 
 ### Try
 `try` is a reserved word, so we've resorted to backticks. If you've got an alternative suggestion,
 we'd love to hear it.
 
-```scala
+```tut:silent
 import scala.util.Try
 import rubiz.syntax.`try`._
 ```
@@ -200,24 +185,20 @@ import rubiz.syntax.`try`._
 If you're using Scalaz you'd probably rather be working with an `Either`/`\/`/`Disjunction` than
 a `Try`.
 
-```scala
+```tut:book
 val badTry = Try(throw new Exception("No really, users."))
-// badTry: scala.util.Try[Nothing] = Failure(java.lang.Exception: No really, users.)
 
 badTry.toDisjunction
-// res13: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
 ```
 
 #### toTask
 If you're in streams-land and want to go directly from a `Try` to a `Task`, this sugars you on over
 there. Useful when using non-Scalaz libs with Scalaz streams.
 
-```scala
+```tut:book
 val okTry = Try("My examples get worse as time goes on")
-// okTry: scala.util.Try[String] = Success(My examples get worse as time goes on)
 
 okTry.toTask.run
-// res14: String = My examples get worse as time goes on
 ```
 
 ## Tests
