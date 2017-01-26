@@ -40,6 +40,7 @@ import scalaz.Catchable
 import scalaz.syntax.catchable._
 import scalaz.effect.IO
 import rubiz.syntax.catchable._
+import scala.concurrent.duration._
 ```
 
 #### ensure
@@ -84,6 +85,16 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
+```
+
+#### labeledTimeout
+Apply a timeout of `time` to `t`; if the timeout occurs, the resulting TimeoutException includes a message including `label` and `time`.
+Like `scalaz.concurrent.Task.timed` but with a non-null, useful error message in the exception.
+
+```tut:book
+(Task.delay(Thread.sleep(100.millis.toMillis))
+  .labeledTimeout(2.millis, "silly example")
+  .attemptRun)
 ```
 
 #### failMap

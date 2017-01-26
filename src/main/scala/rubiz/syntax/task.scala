@@ -3,6 +3,7 @@ package syntax
 
 import scala.concurrent.duration.FiniteDuration
 import scalaz.concurrent.Task
+import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 trait TaskSyntax {
@@ -70,6 +71,18 @@ final class TaskOps[A](val t: Task[A]) extends AnyVal {
       case throwable =>
         f(throwable)
         t
+    }
+  }
+
+  /**
+   * Apply a timeout of `time` to `t`; if the timeout occurs, the resulting TimeoutException includes a message including `label` and `time`.
+   * Like `scalaz.concurrent.Task.timed` but with a non-null, useful error message in the exception.
+   */
+  def labeledTimeout(time: FiniteDuration, label: String): Task[A] = {
+    t.timed(time).handleWith {
+      case ex: TimeoutException =>
+        val message = s"The '$label' task timed out after ${time.toMillis} milliseconds."
+        Task.fail(new TimeoutException(message))
     }
   }
 }

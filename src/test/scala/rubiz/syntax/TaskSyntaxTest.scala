@@ -1,6 +1,8 @@
 package rubiz.syntax
 
 import scalaz.concurrent.Task
+import scala.concurrent.duration._
+
 import all._
 
 class TaskSyntaxTest extends rubiz.WordSpecBase {
@@ -94,6 +96,19 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
       val successfulTask: Task[String] = Task.delay("foo")
       val resultTask = successfulTask.attemptFold(ex => throw ex)(_ => 1)
       resultTask.attemptRun.value shouldBe 1
+    }
+  }
+  "Task.labeledTimeout" should {
+    "allow a normal task to execute unhindered" in {
+      Task.now("expected").labeledTimeout(9.days, "This shouldn't happen").run shouldBe "expected"
+    }
+    "report a nice message for a slow task which hits the limit" in {
+      val slowTask = Task.delay {
+        Thread.sleep(50.millis.toMillis)
+        "unexpected"
+      }
+      val task = slowTask.labeledTimeout(2.millis, "the slow task")
+      task.attemptRun.leftValue.getMessage should include regex "'the slow task'.* 2 milliseconds"
     }
   }
 }
