@@ -57,6 +57,8 @@ Check the result inside `Catchable` to see if it matches your predicate. If it d
 ```scala
 import scalaz.concurrent.Task
 import rubiz.syntax.task._
+import scala.concurrent.duration._
+
 ```
 
 #### withTiming
@@ -74,8 +76,8 @@ information.
         result
   }
   .run)
-// 2 country names were returned in 1 ms.
-// res1: List[String] = List(Australia, Japan)
+// 2 country names were returned in 3 ms.
+// res2: List[String] = List(Australia, Japan)
 ```
 
 #### withSideEffectTiming
@@ -87,8 +89,19 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 8 ms run, to the metrics service!
-// res2: List[String] = List(hello, world)
+// 6 ms run, to the metrics service!
+// res3: List[String] = List(hello, world)
+```
+
+#### labeledTimeout
+Apply a timeout of `time` to `t`; if the timeout occurs, the resulting TimeoutException includes a message including `label` and `time`.
+Like `scalaz.concurrent.Task.timed` but with a non-null, useful error message in the exception.
+
+```scala
+(Task.delay(Thread.sleep(100.millis.toMillis))
+  .labeledTimeout(2.millis, "silly example")
+  .attemptRun)
+// res4: scalaz.\/[Throwable,Unit] = -\/(java.util.concurrent.TimeoutException: The 'silly example' task timed out after 2 milliseconds.)
 ```
 
 #### failMap
@@ -99,7 +112,7 @@ failure.
 (Task.fail(new Exception("Esoteric nonsense."))
   .failMap(_ => new Exception("Contextual description of what happened."))
   .attemptRun)
-// res3: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
+// res5: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
 ```
 
 #### attemptFold
@@ -109,14 +122,14 @@ Allows you to handle errors and map the successes to a new value.
 (Task.now("Success")
   .attemptFold(_ => "Failure")(_ ++ "es")
   .run)
-// res4: String = Successes
+// res6: String = Successes
 ```
 
 ```scala
 (Task.delay[String](throw new Exception("Explosion"))
   .attemptFold(_ => "The explosion was contained.")(_ ++ "es")
   .run)
-// res5: String = The explosion was contained.
+// res7: String = The explosion was contained.
 ```
 
 #### peek
@@ -131,7 +144,7 @@ useful for logging.
   })
   .run)
 // Element was found.
-// res6: Boolean = true
+// res8: Boolean = true
 ```
 
 #### peekFail
@@ -143,7 +156,7 @@ logging.
   .peekFail(_ => println("What is an element, really?"))
   .attemptRun)
 // What is an element, really?
-// res7: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
+// res9: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
 ```
 
 ### Either
@@ -163,7 +176,7 @@ Useful when you're trying to compose `Tasks` and you want to mix in an `Either`.
   .right[Throwable]     // \/[Throwable, List[String]]
   .toTask               // Task[List[String]]
   .run)
-// res8: List[String] = List(USA, Canada)
+// res10: List[String] = List(USA, Canada)
 ```
 
 #### toM
@@ -176,7 +189,7 @@ This operates like `toTask` but is more generic.
   .right[Throwable] // \/[Throwable, String]
   .toM[Task]        // Task[String]
   .run)
-// res10: String = Some Name
+// res12: String = Some Name
 
 // import scalaz.effect.IO
 (new Exception("Users do bad things")
@@ -184,7 +197,7 @@ This operates like `toTask` but is more generic.
   .toM[IO]      // IO[String]
   .attempt      // IO[\/[Throwable, String]]
   .unsafePerformIO)
-// res12: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
+// res14: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
 ```
 
 ### Try
@@ -205,7 +218,7 @@ val badTry = Try(throw new Exception("No really, users."))
 // badTry: scala.util.Try[Nothing] = Failure(java.lang.Exception: No really, users.)
 
 badTry.toDisjunction
-// res13: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
+// res15: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
 ```
 
 #### toTask
@@ -217,7 +230,7 @@ val okTry = Try("My examples get worse as time goes on")
 // okTry: scala.util.Try[String] = Success(My examples get worse as time goes on)
 
 okTry.toTask.run
-// res14: String = My examples get worse as time goes on
+// res16: String = My examples get worse as time goes on
 ```
 
 ## Tests
