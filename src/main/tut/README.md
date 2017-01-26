@@ -40,7 +40,6 @@ import scalaz.Catchable
 import scalaz.syntax.catchable._
 import scalaz.effect.IO
 import rubiz.syntax.catchable._
-import scala.concurrent.duration._
 ```
 
 #### ensure
@@ -57,6 +56,8 @@ Check the result inside `Catchable` to see if it matches your predicate. If it d
 ```tut:silent
 import scalaz.concurrent.Task
 import rubiz.syntax.task._
+import scala.concurrent.duration._
+
 ```
 
 #### withTiming
