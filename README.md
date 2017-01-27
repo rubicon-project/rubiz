@@ -25,7 +25,7 @@ Provides much needed syntax and missing conversions for Scalaz 7.1.
 Add the following to your `build.sbt` file:
 
 ```
-libraryDependencies += "com.rubiconproject" %% "rubiz" % "0.2.+"
+libraryDependencies += "com.rubiconproject" %% "rubiz" % "0.3.+"
 ```
 
 Import all the additional syntax with `import rubiz.syntax.all._`. Specific subsets of syntax can be
@@ -76,7 +76,7 @@ information.
         result
   }
   .run)
-// 2 country names were returned in 3 ms.
+// 2 country names were returned in 1 ms.
 // res2: List[String] = List(Australia, Japan)
 ```
 
@@ -89,7 +89,7 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 6 ms run, to the metrics service!
+// 10 ms run, to the metrics service!
 // res3: List[String] = List(hello, world)
 ```
 
@@ -246,3 +246,10 @@ Run `sbt test` to build the project and exercise the unit test suite.
 Rubiz is versioned with [semver](http://semver.org/) and released to [sonatype](https://oss.sonatype.org/).
 Open an issue on Github if you feel there should be a release published that hasn't been. You can run `sbt tut`
 to regenerate documentation locally if you modify the docs in the `/main/tut` directory.
+
+For those with permission to release:
+* Install `gpg` and [generate a key](https://www.gnupg.org/gph/en/manual.html#AEN26). Upload that key to a [public key server](http://pgp.mit.edu/).
+    * Mac users can `brew install gpg pinentry-mac` to get the tools needed.
+* Create a Sonatype [credentials file](http://www.scala-sbt.org/1.0/docs/Using-Sonatype.html#Fourth+-+Adding+credentials).
+* Run `sbt release`
+* Push the newly created tags and version bump commits to `rubicon-project/rubiz`. 
