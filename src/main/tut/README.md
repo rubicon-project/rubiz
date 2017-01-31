@@ -51,6 +51,21 @@ Check the result inside `Catchable` to see if it matches your predicate. If it d
   .unsafePerformIO)
 ```
 
+#### attemptSome
+Example needed.
+
+#### except
+Example needed.
+
+#### exceptSome
+Example needed.
+
+#### onException
+Example needed.
+
+#### ensuring
+Example needed.
+
 ### Task
 
 ```tut:silent
