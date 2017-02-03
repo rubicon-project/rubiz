@@ -247,4 +247,4 @@ For those with permission to release:
     * Mac users can `brew install gpg pinentry-mac` to get the tools needed.
 * Create a Sonatype [credentials file](http://www.scala-sbt.org/1.0/docs/Using-Sonatype.html#Fourth+-+Adding+credentials).
 * Run `sbt release`
-* `git push` to add the new tags and release commits to master.
+* Push the newly created tags and version bump commits to `rubicon-project/rubiz`.

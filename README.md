@@ -104,7 +104,7 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 8 ms run, to the metrics service!
+// 9 ms run, to the metrics service!
 // res3: List[String] = List(hello, world)
 ```
 
@@ -267,4 +267,4 @@ For those with permission to release:
     * Mac users can `brew install gpg pinentry-mac` to get the tools needed.
 * Create a Sonatype [credentials file](http://www.scala-sbt.org/1.0/docs/Using-Sonatype.html#Fourth+-+Adding+credentials).
 * Run `sbt release`
-* `git push` to add the new tags and release commits to master.
+* Push the newly created tags and version bump commits to `rubicon-project/rubiz`.
