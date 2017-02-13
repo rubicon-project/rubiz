@@ -146,6 +146,16 @@ logging.
   .attemptRun)
 ```
 
+#### using
+Ensure that a resource is "closed" when a task completes, regardless of whether it's successful.
+
+```tut:book
+class CloseableThing extends java.io.Closeable { def close: Unit = println("Not so fast! I have been closed.") }
+Task.delay(new CloseableThing).using { closeableThing =>
+  throw new Exception("All your resources are lost to chaos")
+}.attemptRun
+```
+
 ### Either
 
 ```tut:silent
