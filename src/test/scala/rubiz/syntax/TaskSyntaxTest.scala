@@ -1,6 +1,7 @@
 package rubiz.syntax
 
 import scalaz.concurrent.Task
+import rubiz.CanCloseTest.Foo
 import scala.concurrent.duration._
 
 import all._
@@ -109,6 +110,29 @@ class TaskSyntaxTest extends rubiz.WordSpecBase {
       }
       val task = slowTask.labeledTimeout(2.millis, "the slow task")
       task.attemptRun.leftValue.getMessage should include regex "'the slow task'.* 2 milliseconds"
+    }
+  }
+  "Task.using" should {
+    "close the item if the Task succeeds" in {
+      val foo = new Foo
+      Task.delay(foo).using { _ =>
+        Task.now(1)
+      }.attemptRun.value shouldBe 1
+      foo.isClosed shouldBe true
+    }
+    "close the item if the Task fails explicitly" in {
+      val foo = new Foo
+      Task.delay(foo).using { _ =>
+        Task.fail(new IllegalArgumentException)
+      }.attemptRun shouldBe left
+      foo.isClosed shouldBe true
+    }
+    "close the item if the Task fails due to a thrown exception" in {
+      val foo = new Foo
+      Task.delay(foo).using { _ =>
+        throw new InternalError
+      }.attemptRun shouldBe left
+      foo.isClosed shouldBe true
     }
   }
 }

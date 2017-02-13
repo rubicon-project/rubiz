@@ -85,4 +85,11 @@ final class TaskOps[A](val t: Task[A]) extends AnyVal {
         Task.fail(new TimeoutException(message))
     }
   }
+
+  /**
+   * After aquiring a resource in `t`, use it in `perform`, ensuring it is closed at the end.
+   */
+  def using[B](perform: A => Task[B])(implicit cc: CanClose[A]): Task[B] = {
+    CanClose.computeWithClose(t)(perform)
+  }
 }

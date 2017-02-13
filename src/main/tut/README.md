@@ -146,6 +146,18 @@ logging.
   .attemptRun)
 ```
 
+#### using
+Ensure that a resource is "closed" when a task completes, regardless of whether it's successful.
+A [`CanClose` instance](src/main/scala/rubiz/CanClose.scala) must be scope to call `using`.
+If the object to be closed isn't [`java.io.Closeable`](https://docs.oracle.com/javase/8/docs/api/java/io/Closeable.html) then you'll need to define a `CanClose` instance.
+
+```tut:book
+class CloseableThing extends java.io.Closeable { def close: Unit = println("Not so fast! I have been closed.") }
+Task.delay(new CloseableThing).using { closeableThing =>
+  throw new Exception("All your resources are lost to chaos")
+}.attemptRun
+```
+
 ### Either
 
 ```tut:silent
@@ -175,7 +187,7 @@ This operates like `toTask` but is more generic.
   .right[Throwable] // \/[Throwable, String]
   .toM[Task]        // Task[String]
   .run)
-  
+
 // import scalaz.effect.IO
 (new Exception("Users do bad things")
   .left[String] // \/[Throwable, String]
