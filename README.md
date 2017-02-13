@@ -89,7 +89,7 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 9 ms run, to the metrics service!
+// 6 ms run, to the metrics service!
 // res3: List[String] = List(hello, world)
 ```
 
@@ -161,6 +161,8 @@ logging.
 
 #### using
 Ensure that a resource is "closed" when a task completes, regardless of whether it's successful.
+A [`CanClose` instance](src/main/scala/rubiz/CanClose.scala) must be scope to call `using`.
+If the object to be closed isn't [[java.io.Closeable]] then you'll need to define an `CanClose` instance.
 
 ```scala
 class CloseableThing extends java.io.Closeable { def close: Unit = println("Not so fast! I have been closed.") }

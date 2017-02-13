@@ -1,7 +1,6 @@
 package rubiz
 
 import scalaz.concurrent.Task
-import scalaz.Contravariant
 
 /**
  * Typeclass for things that can be closed; best paired with `Task.using` syntax.
@@ -18,12 +17,6 @@ trait CanClose[-A] {
 final object CanClose {
 
   def apply[A](implicit cc: CanClose[A]): CanClose[A] = cc
-
-  implicit val contravariantFunctor: Contravariant[CanClose] = new Contravariant[CanClose] {
-    def contramap[A, B](canCloseA: CanClose[A])(f: B => A): CanClose[B] = new CanClose[B] {
-      def close(b: B): Task[Unit] = canCloseA.close(f(b))
-    }
-  }
 
   /**
    * Create a CanClose for A given its close function
