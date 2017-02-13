@@ -149,7 +149,7 @@ logging.
 #### using
 Ensure that a resource is "closed" when a task completes, regardless of whether it's successful.
 A [`CanClose` instance](src/main/scala/rubiz/CanClose.scala) must be scope to call `using`.
-If the object to be closed isn't [`java.io.Closeable`](https://docs.oracle.com/javase/8/docs/api/java/io/Closeable.html) then you'll need to define an `CanClose` instance.
+If the object to be closed isn't [`java.io.Closeable`](https://docs.oracle.com/javase/8/docs/api/java/io/Closeable.html) then you'll need to define a `CanClose` instance.
 
 ```tut:book
 class CloseableThing extends java.io.Closeable { def close: Unit = println("Not so fast! I have been closed.") }
