@@ -39,6 +39,7 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 import scalaz.Catchable
 import scalaz.syntax.catchable._
 import scalaz.effect.IO
+import scalaz.concurrent.Task
 import rubiz.syntax.catchable._
 ```
 
@@ -64,21 +65,55 @@ exceptions that you have a better type or message for on the left, rethrowing on
 ```
 
 #### except
+Lets you define an exception handler on the Catchable that maintains the same type.
+
 ```tut:book
-(IO(throw new java.sql.SQLException).attemptSome {
-    case sqlE: java.sql.SQLException => "Computer says no."
-  }
+(IO[Int](throw new IllegalArgumentException)
+  .except(e => IO(0))
   .unsafePerformIO)
 ```
 
 #### exceptSome
-Example needed.
+Like [`except`](#except) but only executes where the function is defined. Has similar use cases to 
+[`attemptSome`](#attemptSome), but when you have a default you want to use instead of a Throwable
+transformation.
+
+```tut:book
+(IO[Int](throw new java.sql.SQLException).exceptSome {
+    case sqlE: java.sql.SQLException => IO(0)
+  }
+  .unsafePerformIO)
+```
 
 #### onException
-Example needed.
+Like `finally`, but only runs when there was an exception.
+
+```tut:book
+(try {
+  Task.delay(throw new Exception())
+    .onException(Task.delay(println("THERE WAS A FIREFIGHT!")))
+    .run
+} catch {
+  case _: Throwable => println("Or something.")
+})
+```
 
 #### ensuring
-Example needed.
+Generalizes `finally` for all `Catchable`, not just `IO`.
+
+```tut:book
+(try {
+  Task.delay(throw new Exception())
+    .ensuring(Task.delay(println("THERE WAS A FIREFIGHT!")))
+    .run
+} catch {
+  case _: Throwable => println("Or something.")
+})
+
+(Task.delay(0)
+  .ensuring(Task.delay(println("THERE WAS A FIREFIGHT!")))
+  .run)
+```
 
 ### Task
 
