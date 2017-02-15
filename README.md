@@ -91,7 +91,7 @@ information.
         result
   }
   .run)
-// 2 country names were returned in 1 ms.
+// 2 country names were returned in 6 ms.
 // res2: List[String] = List(Australia, Japan)
 ```
 
@@ -104,7 +104,7 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 9 ms run, to the metrics service!
+// 11 ms run, to the metrics service!
 // res3: List[String] = List(hello, world)
 ```
 
@@ -174,6 +174,22 @@ logging.
 // res9: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
 ```
 
+#### using
+Ensure that a resource is "closed" when a task completes, regardless of whether it's successful.
+A [`CanClose` instance](src/main/scala/rubiz/CanClose.scala) must be scope to call `using`.
+If the object to be closed isn't [`java.io.Closeable`](https://docs.oracle.com/javase/8/docs/api/java/io/Closeable.html) then you'll need to define a `CanClose` instance.
+
+```scala
+class CloseableThing extends java.io.Closeable { def close: Unit = println("Not so fast! I have been closed.") }
+// defined class CloseableThing
+
+Task.delay(new CloseableThing).using { closeableThing =>
+  throw new Exception("All your resources are lost to chaos")
+}.attemptRun
+// Not so fast! I have been closed.
+// res10: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: All your resources are lost to chaos)
+```
+
 ### Either
 
 ```scala
@@ -191,7 +207,7 @@ Useful when you're trying to compose `Tasks` and you want to mix in an `Either`.
   .right[Throwable]     // \/[Throwable, List[String]]
   .toTask               // Task[List[String]]
   .run)
-// res10: List[String] = List(USA, Canada)
+// res11: List[String] = List(USA, Canada)
 ```
 
 #### toM
@@ -204,7 +220,7 @@ This operates like `toTask` but is more generic.
   .right[Throwable] // \/[Throwable, String]
   .toM[Task]        // Task[String]
   .run)
-// res12: String = Some Name
+// res13: String = Some Name
 
 // import scalaz.effect.IO
 (new Exception("Users do bad things")
@@ -212,7 +228,7 @@ This operates like `toTask` but is more generic.
   .toM[IO]      // IO[String]
   .attempt      // IO[\/[Throwable, String]]
   .unsafePerformIO)
-// res14: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
+// res15: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
 ```
 
 ### Try
@@ -233,7 +249,7 @@ val badTry = Try(throw new Exception("No really, users."))
 // badTry: scala.util.Try[Nothing] = Failure(java.lang.Exception: No really, users.)
 
 badTry.toDisjunction
-// res15: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
+// res16: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
 ```
 
 #### toTask
@@ -245,7 +261,7 @@ val okTry = Try("My examples get worse as time goes on")
 // okTry: scala.util.Try[String] = Success(My examples get worse as time goes on)
 
 okTry.toTask.run
-// res16: String = My examples get worse as time goes on
+// res17: String = My examples get worse as time goes on
 ```
 
 ## Tests
