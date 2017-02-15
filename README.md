@@ -39,6 +39,7 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 import scalaz.Catchable
 import scalaz.syntax.catchable._
 import scalaz.effect.IO
+import scalaz.concurrent.Task
 import rubiz.syntax.catchable._
 ```
 
@@ -50,6 +51,78 @@ Check the result inside `Catchable` to see if it matches your predicate. If it d
   .ensure(new Exception("Can't make a user without a name."))(_.nonEmpty)
   .unsafePerformIO)
 // res0: String = username
+```
+
+#### attemptSome
+`attempt`, but it will only catch/map throwables for which the function is defined. If the function
+doesn't match for the throwable it will re-throw. A common use case is to map IO (user or DB)
+exceptions that you have a better type or message for on the left, rethrowing ones you didn't expect.
+
+```scala
+(IO(throw new java.sql.SQLException).attemptSome {
+    case sqlE: java.sql.SQLException => "Computer says no."
+  }
+  .unsafePerformIO)
+// res1: scalaz.\/[String,Nothing] = -\/(Computer says no.)
+```
+
+#### except
+Lets you define an exception handler on the Catchable that maintains the same type.
+
+```scala
+(IO[Int](throw new IllegalArgumentException)
+  .except(e => IO(0))
+  .unsafePerformIO)
+// res2: Int = 0
+```
+
+#### exceptSome
+Like [`except`](#except) but only executes where the function is defined. Has similar use cases to 
+[`attemptSome`](#attemptSome), but when you have a default you want to use instead of a Throwable
+transformation.
+
+```scala
+(IO[Int](throw new java.sql.SQLException).exceptSome {
+    case sqlE: java.sql.SQLException => IO(0)
+  }
+  .unsafePerformIO)
+// res3: Int = 0
+```
+
+#### onException
+Like `finally`, but only runs when there was an exception.
+
+```scala
+(try {
+  Task.delay(throw new Exception())
+    .onException(Task.delay(println("THERE WAS A FIREFIGHT!")))
+    .run
+} catch {
+  case _: Throwable => println("Or something.")
+})
+// THERE WAS A FIREFIGHT!
+// Or something.
+```
+
+#### ensuring
+Generalizes `finally` for all `Catchable`, not just `IO`.
+
+```scala
+(try {
+  Task.delay(throw new Exception())
+    .ensuring(Task.delay(println("THERE WAS A FIREFIGHT!")))
+    .run
+} catch {
+  case _: Throwable => println("Or something.")
+})
+// THERE WAS A FIREFIGHT!
+// Or something.
+
+(Task.delay(0)
+  .ensuring(Task.delay(println("THERE WAS A FIREFIGHT!")))
+  .run)
+// THERE WAS A FIREFIGHT!
+// res6: Int = 0
 ```
 
 ### Task
@@ -76,8 +149,8 @@ information.
         result
   }
   .run)
-// 2 country names were returned in 2 ms.
-// res2: List[String] = List(Australia, Japan)
+// 2 country names were returned in 1 ms.
+// res8: List[String] = List(Australia, Japan)
 ```
 
 #### withSideEffectTiming
@@ -89,8 +162,8 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 6 ms run, to the metrics service!
-// res3: List[String] = List(hello, world)
+// 2 ms run, to the metrics service!
+// res9: List[String] = List(hello, world)
 ```
 
 #### labeledTimeout
@@ -101,7 +174,7 @@ Like `scalaz.concurrent.Task.timed` but with a non-null, useful error message in
 (Task.delay(Thread.sleep(100.millis.toMillis))
   .labeledTimeout(2.millis, "silly example")
   .attemptRun)
-// res4: scalaz.\/[Throwable,Unit] = -\/(java.util.concurrent.TimeoutException: The 'silly example' task timed out after 2 milliseconds.)
+// res10: scalaz.\/[Throwable,Unit] = -\/(java.util.concurrent.TimeoutException: The 'silly example' task timed out after 2 milliseconds.)
 ```
 
 #### failMap
@@ -112,7 +185,7 @@ failure.
 (Task.fail(new Exception("Esoteric nonsense."))
   .failMap(_ => new Exception("Contextual description of what happened."))
   .attemptRun)
-// res5: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
+// res11: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: Contextual description of what happened.)
 ```
 
 #### attemptFold
@@ -122,14 +195,14 @@ Allows you to handle errors and map the successes to a new value.
 (Task.now("Success")
   .attemptFold(_ => "Failure")(_ ++ "es")
   .run)
-// res6: String = Successes
+// res12: String = Successes
 ```
 
 ```scala
 (Task.delay[String](throw new Exception("Explosion"))
   .attemptFold(_ => "The explosion was contained.")(_ ++ "es")
   .run)
-// res7: String = The explosion was contained.
+// res13: String = The explosion was contained.
 ```
 
 #### peek
@@ -144,7 +217,7 @@ useful for logging.
   })
   .run)
 // Element was found.
-// res8: Boolean = true
+// res14: Boolean = true
 ```
 
 #### peekFail
@@ -156,7 +229,7 @@ logging.
   .peekFail(_ => println("What is an element, really?"))
   .attemptRun)
 // What is an element, really?
-// res9: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
+// res15: scalaz.\/[Throwable,Boolean] = -\/(java.lang.Exception: I can't search this list!)
 ```
 
 #### using
@@ -172,7 +245,7 @@ Task.delay(new CloseableThing).using { closeableThing =>
   throw new Exception("All your resources are lost to chaos")
 }.attemptRun
 // Not so fast! I have been closed.
-// res10: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: All your resources are lost to chaos)
+// res16: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: All your resources are lost to chaos)
 ```
 
 ### Either
@@ -192,7 +265,7 @@ Useful when you're trying to compose `Tasks` and you want to mix in an `Either`.
   .right[Throwable]     // \/[Throwable, List[String]]
   .toTask               // Task[List[String]]
   .run)
-// res11: List[String] = List(USA, Canada)
+// res17: List[String] = List(USA, Canada)
 ```
 
 #### toM
@@ -205,7 +278,7 @@ This operates like `toTask` but is more generic.
   .right[Throwable] // \/[Throwable, String]
   .toM[Task]        // Task[String]
   .run)
-// res13: String = Some Name
+// res19: String = Some Name
 
 // import scalaz.effect.IO
 (new Exception("Users do bad things")
@@ -213,7 +286,7 @@ This operates like `toTask` but is more generic.
   .toM[IO]      // IO[String]
   .attempt      // IO[\/[Throwable, String]]
   .unsafePerformIO)
-// res15: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
+// res21: scalaz.\/[Throwable,String] = -\/(java.lang.Exception: Users do bad things)
 ```
 
 ### Try
@@ -234,7 +307,7 @@ val badTry = Try(throw new Exception("No really, users."))
 // badTry: scala.util.Try[Nothing] = Failure(java.lang.Exception: No really, users.)
 
 badTry.toDisjunction
-// res16: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
+// res22: scalaz.\/[Throwable,Nothing] = -\/(java.lang.Exception: No really, users.)
 ```
 
 #### toTask
@@ -246,7 +319,7 @@ val okTry = Try("My examples get worse as time goes on")
 // okTry: scala.util.Try[String] = Success(My examples get worse as time goes on)
 
 okTry.toTask.run
-// res17: String = My examples get worse as time goes on
+// res23: String = My examples get worse as time goes on
 ```
 
 ## Tests
@@ -268,4 +341,4 @@ For those with permission to release:
     * Mac users can `brew install gpg pinentry-mac` to get the tools needed.
 * Create a Sonatype [credentials file](http://www.scala-sbt.org/1.0/docs/Using-Sonatype.html#Fourth+-+Adding+credentials).
 * Run `sbt release`
-* `git push` to add the new tags and release commits to master.
+* Push the newly created tags and version bump commits to `rubicon-project/rubiz`.

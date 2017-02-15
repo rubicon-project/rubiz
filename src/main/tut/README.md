@@ -39,6 +39,7 @@ imported if preferred (eg, `import rubiz.syntax.either._`).
 import scalaz.Catchable
 import scalaz.syntax.catchable._
 import scalaz.effect.IO
+import scalaz.concurrent.Task
 import rubiz.syntax.catchable._
 ```
 
@@ -49,6 +50,69 @@ Check the result inside `Catchable` to see if it matches your predicate. If it d
 (IO("username")
   .ensure(new Exception("Can't make a user without a name."))(_.nonEmpty)
   .unsafePerformIO)
+```
+
+#### attemptSome
+`attempt`, but it will only catch/map throwables for which the function is defined. If the function
+doesn't match for the throwable it will re-throw. A common use case is to map IO (user or DB)
+exceptions that you have a better type or message for on the left, rethrowing ones you didn't expect.
+
+```tut:book
+(IO(throw new java.sql.SQLException).attemptSome {
+    case sqlE: java.sql.SQLException => "Computer says no."
+  }
+  .unsafePerformIO)
+```
+
+#### except
+Lets you define an exception handler on the Catchable that maintains the same type.
+
+```tut:book
+(IO[Int](throw new IllegalArgumentException)
+  .except(e => IO(0))
+  .unsafePerformIO)
+```
+
+#### exceptSome
+Like [`except`](#except) but only executes where the function is defined. Has similar use cases to 
+[`attemptSome`](#attemptSome), but when you have a default you want to use instead of a Throwable
+transformation.
+
+```tut:book
+(IO[Int](throw new java.sql.SQLException).exceptSome {
+    case sqlE: java.sql.SQLException => IO(0)
+  }
+  .unsafePerformIO)
+```
+
+#### onException
+Like `finally`, but only runs when there was an exception.
+
+```tut:book
+(try {
+  Task.delay(throw new Exception())
+    .onException(Task.delay(println("THERE WAS A FIREFIGHT!")))
+    .run
+} catch {
+  case _: Throwable => println("Or something.")
+})
+```
+
+#### ensuring
+Generalizes `finally` for all `Catchable`, not just `IO`.
+
+```tut:book
+(try {
+  Task.delay(throw new Exception())
+    .ensuring(Task.delay(println("THERE WAS A FIREFIGHT!")))
+    .run
+} catch {
+  case _: Throwable => println("Or something.")
+})
+
+(Task.delay(0)
+  .ensuring(Task.delay(println("THERE WAS A FIREFIGHT!")))
+  .run)
 ```
 
 ### Task
@@ -244,4 +308,4 @@ For those with permission to release:
     * Mac users can `brew install gpg pinentry-mac` to get the tools needed.
 * Create a Sonatype [credentials file](http://www.scala-sbt.org/1.0/docs/Using-Sonatype.html#Fourth+-+Adding+credentials).
 * Run `sbt release`
-* `git push` to add the new tags and release commits to master.
+* Push the newly created tags and version bump commits to `rubicon-project/rubiz`.

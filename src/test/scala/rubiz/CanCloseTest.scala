@@ -1,8 +1,10 @@
 package rubiz
 
+import java.util.concurrent.{ Executors }
+
 import scalaz.\/
 import scalaz.concurrent.Task
-import org.typelevel.scalatest.{ DisjunctionValues, DisjunctionMatchers }
+import org.typelevel.scalatest.{ DisjunctionMatchers, DisjunctionValues }
 import CanCloseTest.Foo
 
 class CanCloseTest extends rubiz.WordSpecBase with DisjunctionValues with DisjunctionMatchers {
@@ -14,6 +16,13 @@ class CanCloseTest extends rubiz.WordSpecBase with DisjunctionValues with Disjun
       val result = CanClose.using(foo) { _ => 1 }
       result.attemptRun.value shouldBe 1 //Just to prove we made it here
       foo.isClosed shouldBe true
+    }
+
+    "close single value for ExecutorService" in {
+      val foo = Executors.newSingleThreadExecutor()
+      val result = CanClose.using(foo) { _ => 1 }
+      result.attemptRun.value shouldBe 1 //Just to prove we made it here
+      foo.isShutdown shouldBe true
     }
 
     "close even if exception happens" in {
