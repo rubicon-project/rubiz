@@ -1,6 +1,7 @@
 package rubiz.syntax
 
 import scalaz.effect.IO, scalaz.Scalaz._
+import scalaz.concurrent.Task
 import all._
 
 class CatchableSyntaxTest extends rubiz.WordSpecBase {
@@ -73,14 +74,14 @@ class CatchableSyntaxTest extends rubiz.WordSpecBase {
   "onException" should {
     "do nothing on success" in {
       var a = 1
-      IO(42).onException(IO(a += 1)).unsafePerformIO
+      Task.now(42).onException(Task.delay(a += 1)).run
       a shouldBe 1
     }
 
     "perform its effect on exception" in {
       var a = 1
       try {
-        IO[Int](Predef.???).onException(IO(a += 1)).unsafePerformIO
+        Task.delay[Int](Predef.???).onException(Task.delay(a += 1)).run
         false
       } catch {
         case _: Throwable => a == 2
@@ -92,14 +93,14 @@ class CatchableSyntaxTest extends rubiz.WordSpecBase {
   "ensuring" should {
     "perform its effect on success" in {
       var a = 1
-      IO(42).ensuring(IO(a += 1)).unsafePerformIO
+      Task.delay(42).ensuring(Task.delay(a += 1)).run
       a shouldBe 2
     }
 
     "perform its effect on exception" in {
       var a = 1
       try {
-        IO[Int](Predef.???).ensuring(IO(a += 1)).unsafePerformIO
+        Task.delay[Int](Predef.???).ensuring(Task.delay(a += 1)).run
         false
       } catch {
         case _: Throwable => a == 2

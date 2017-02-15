@@ -52,10 +52,24 @@ Check the result inside `Catchable` to see if it matches your predicate. If it d
 ```
 
 #### attemptSome
-Example needed.
+`attempt`, but it will only catch/map throwables for which the function is defined. If the function
+doesn't match for the throwable it will re-throw. A common use case is to map IO (user or DB)
+exceptions that you have a better type or message for on the left, rethrowing ones you didn't expect.
+
+```tut:book
+(IO(throw new java.sql.SQLException).attemptSome {
+    case sqlE: java.sql.SQLException => "Computer says no."
+  }
+  .unsafePerformIO)
+```
 
 #### except
-Example needed.
+```tut:book
+(IO(throw new java.sql.SQLException).attemptSome {
+    case sqlE: java.sql.SQLException => "Computer says no."
+  }
+  .unsafePerformIO)
+```
 
 #### exceptSome
 Example needed.
