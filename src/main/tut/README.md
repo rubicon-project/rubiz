@@ -25,7 +25,7 @@ Provides much needed syntax and missing conversions for Scalaz 7.1.
 Add the following to your `build.sbt` file:
 
 ```
-libraryDependencies += "com.rubiconproject" %% "rubiz" % "0.3.+"
+libraryDependencies += "com.rubiconproject" %% "rubiz" % "0.4.+"
 ```
 
 Import all the additional syntax with `import rubiz.syntax.all._`. Specific subsets of syntax can be

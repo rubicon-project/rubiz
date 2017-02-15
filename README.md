@@ -25,7 +25,7 @@ Provides much needed syntax and missing conversions for Scalaz 7.1.
 Add the following to your `build.sbt` file:
 
 ```
-libraryDependencies += "com.rubiconproject" %% "rubiz" % "0.3.+"
+libraryDependencies += "com.rubiconproject" %% "rubiz" % "0.4.+"
 ```
 
 Import all the additional syntax with `import rubiz.syntax.all._`. Specific subsets of syntax can be
@@ -162,7 +162,7 @@ regardless of the success of the task.
 (Task.delay(List("hello", "world"))
   .withSideEffectTiming(timing => println(s"${timing.toMillis} ms run, to the metrics service!"))  // Task[List[String]]
   .run)
-// 2 ms run, to the metrics service!
+// 4 ms run, to the metrics service!
 // res9: List[String] = List(hello, world)
 ```
 
